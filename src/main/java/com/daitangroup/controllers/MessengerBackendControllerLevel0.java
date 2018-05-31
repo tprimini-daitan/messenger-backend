@@ -25,7 +25,7 @@ public class MessengerBackendControllerLevel0 {
     private static final String C_UPDATE_SERVICE = "update";
     private static final String C_DELETE_SERVICE = "delete";
 
-    @RequestMapping(value="/messenger/userService", method=POST)
+    @RequestMapping(value="lm_0/messenger/userService", method=POST)
     @ResponseBody
     public ResponseContent doUserService(@RequestParam(name="service", defaultValue="create") String service,
                                          @RequestParam(name="id", required=false) Integer id,
