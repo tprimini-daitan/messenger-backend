@@ -1,8 +1,10 @@
 package com.daitangroup;
 
+import org.springframework.hateoas.ResourceSupport;
+
 import java.util.List;
 
-public class ResponseContent {
+public class ResponseContent extends ResourceSupport {
     private String service;
     private List<User> users;
 
