@@ -5,6 +5,8 @@ import com.daitangroup.User;
 import com.daitangroup.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,10 +28,12 @@ public class MessengerBackendControllerLevel2 {
     @Qualifier("UserDaoMysqlImpl")
     private UserDao userDao;
 
-    @RequestMapping(value="lm_2/messenger/user", method=POST)
+    @RequestMapping(value="lm_2/messenger/user", method=POST, produces="application/json")
     @ResponseBody
-    public ResponseContent createUser(@RequestParam(name="name", required=false, defaultValue="") String name,
-                                      @RequestParam(name="password", required=false, defaultValue="") String password) {
+    public ResponseEntity createUser(@RequestParam(name="name", required=false, defaultValue="") String name,
+                                     @RequestParam(name="password", required=false, defaultValue="") String password) {
+
+        HttpStatus httpStatus = HttpStatus.CREATED;
 
         List<User> users = new ArrayList<User>();
 
@@ -47,14 +51,17 @@ public class MessengerBackendControllerLevel2 {
             responseContent.setUsers(users);
         } catch (Exception e) {
             responseContent.setService(e.toString());
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        return responseContent;
+        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    @RequestMapping(value="lm_2/messenger/user", method=GET)
+    @RequestMapping(value="lm_2/messenger/user", method=GET, produces="application/json")
     @ResponseBody
-    public ResponseContent readUser(@RequestParam(name="id", required=false) Integer id) {
+    public ResponseEntity readUser(@RequestParam(name="id", required=false) Integer id) {
+
+        HttpStatus httpStatus = HttpStatus.OK;
 
         List<User> users = new ArrayList<User>();
 
@@ -65,6 +72,9 @@ public class MessengerBackendControllerLevel2 {
                 User gotUser = userDao.getById(id);
                 users.add(gotUser);
                 responseContent.setUsers(users);
+                if (gotUser == null) {
+                    httpStatus = HttpStatus.NOT_FOUND;
+                }
             } else {
                 List gotUsers = userDao.getAll();
                 responseContent.setUsers(gotUsers);
@@ -72,17 +82,20 @@ public class MessengerBackendControllerLevel2 {
             responseContent.setService("read");
         } catch (Exception e) {
             responseContent.setService(e.toString());
+            httpStatus = HttpStatus.NOT_FOUND;
         }
 
-        return responseContent;
+        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
 
-    @RequestMapping(value="lm_2/messenger/user", method=PUT)
+    @RequestMapping(value="lm_2/messenger/user", method=PUT, produces="application/json")
     @ResponseBody
-    public ResponseContent updateUser(@RequestParam(name="id") Integer id,
+    public ResponseEntity updateUser(@RequestParam(name="id") Integer id,
                                       @RequestParam(name="name", required=false, defaultValue="") String name,
                                       @RequestParam(name="password", required=false, defaultValue="") String password) {
+
+        HttpStatus httpStatus = HttpStatus.OK;
 
         List<User> users = new ArrayList<User>();
 
@@ -101,14 +114,17 @@ public class MessengerBackendControllerLevel2 {
             responseContent.setUsers(users);
         } catch (Exception e) {
             responseContent.setService(e.toString());
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        return responseContent;
+        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    @RequestMapping(value="lm_2/messenger/user", method=DELETE)
+    @RequestMapping(value="lm_2/messenger/user", method=DELETE, produces="application/json")
     @ResponseBody
-    public ResponseContent deleteUser(@RequestParam(name="id") Integer id) {
+    public ResponseEntity deleteUser(@RequestParam(name="id") Integer id) {
+
+        HttpStatus httpStatus = HttpStatus.OK;
 
         List<User> users = new ArrayList<User>();
 
@@ -124,8 +140,9 @@ public class MessengerBackendControllerLevel2 {
             responseContent.setUsers(users);
         } catch (Exception e) {
             responseContent.setService(e.toString());
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        return responseContent;
+        return new ResponseEntity<>(responseContent, httpStatus);
     }
 }
