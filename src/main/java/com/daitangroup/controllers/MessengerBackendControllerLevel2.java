@@ -14,16 +14,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 
 
 @RestController
-public class MessengerBackendControllerLevel1 {
+public class MessengerBackendControllerLevel2 {
 
     @Autowired
     @Qualifier("UserDaoMysqlImpl")
     private UserDao userDao;
 
-    @RequestMapping(value="lm_1/messenger/create", method=POST)
+    @RequestMapping(value="lm_2/messenger/user", method=POST)
     @ResponseBody
     public ResponseContent createUser(@RequestParam(name="name", required=false, defaultValue="") String name,
                                       @RequestParam(name="password", required=false, defaultValue="") String password) {
@@ -49,7 +52,7 @@ public class MessengerBackendControllerLevel1 {
         return responseContent;
     }
 
-    @RequestMapping(value="lm_1/messenger/read", method=POST)
+    @RequestMapping(value="lm_2/messenger/user", method=GET)
     @ResponseBody
     public ResponseContent readUser(@RequestParam(name="id", required=false) Integer id) {
 
@@ -75,7 +78,7 @@ public class MessengerBackendControllerLevel1 {
     }
 
 
-    @RequestMapping(value="lm_1/messenger/update", method=POST)
+    @RequestMapping(value="lm_2/messenger/user", method=PUT)
     @ResponseBody
     public ResponseContent updateUser(@RequestParam(name="id") Integer id,
                                       @RequestParam(name="name", required=false, defaultValue="") String name,
@@ -103,7 +106,7 @@ public class MessengerBackendControllerLevel1 {
         return responseContent;
     }
 
-    @RequestMapping(value="lm_1/messenger/delete", method=POST)
+    @RequestMapping(value="lm_2/messenger/user", method=DELETE)
     @ResponseBody
     public ResponseContent deleteUser(@RequestParam(name="id") Integer id) {
 
