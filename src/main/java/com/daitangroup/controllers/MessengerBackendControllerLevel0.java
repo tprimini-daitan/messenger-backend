@@ -1,7 +1,7 @@
 package com.daitangroup.controllers;
 
 import com.daitangroup.ResponseContent;
-import com.daitangroup.User;
+import com.daitangroup.entity.User;
 import com.daitangroup.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

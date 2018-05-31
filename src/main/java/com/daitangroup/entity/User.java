@@ -1,4 +1,4 @@
-package com.daitangroup;
+package com.daitangroup.entity;
 
 
 import org.springframework.data.annotation.Id;

@@ -1,5 +1,6 @@
 package com.daitangroup;
 
+import com.daitangroup.entity.User;
 import org.springframework.hateoas.ResourceSupport;
 
 import java.util.List;

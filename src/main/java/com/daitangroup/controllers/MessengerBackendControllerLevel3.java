@@ -1,19 +1,22 @@
 package com.daitangroup.controllers;
 
+import com.daitangroup.MessageRequestData;
 import com.daitangroup.ResponseContent;
-import com.daitangroup.User;
+import com.daitangroup.entity.Message;
+import com.daitangroup.entity.MessageTransmission;
+import com.daitangroup.entity.User;
+import com.daitangroup.repo.MessageRepository;
+import com.daitangroup.repo.MessageTransmissionRepository;
 import com.daitangroup.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +28,12 @@ public class MessengerBackendControllerLevel3 {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
+    private MessageTransmissionRepository messageTransmissionRepository;
 
     @RequestMapping(value="lm_3/messenger/user", method=POST, produces="application/json")
     @ResponseBody
@@ -149,6 +158,44 @@ public class MessengerBackendControllerLevel3 {
         }
 
         addLinksToContentForUser(responseContent, user);
+
+        return new ResponseEntity<>(responseContent, httpStatus);
+    }
+
+    @RequestMapping(value="lm_3/messenger/send_message", method=POST, produces="application/json")
+    @ResponseBody
+    public ResponseEntity sendMessage(@RequestBody MessageRequestData messageRequestData) {
+
+        ResponseContent responseContent = new ResponseContent();
+
+        HttpStatus httpStatus = HttpStatus.OK;
+
+        Optional<User> sourceUser = userRepository.findById(messageRequestData.getSourceId());
+        if (!sourceUser.isPresent()) {
+            httpStatus = HttpStatus.NOT_FOUND;
+            responseContent.setService("Source user not found");
+            return new ResponseEntity<>(responseContent, httpStatus);
+        }
+
+        Optional<User> destinationUser = userRepository.findById(messageRequestData.getDestinationId());
+        if (!destinationUser.isPresent()) {
+            httpStatus = HttpStatus.NOT_FOUND;
+            responseContent.setService("Destination user not found");
+            return new ResponseEntity<>(responseContent, httpStatus);
+        }
+
+        Message message = new Message();
+        message.setPayload(messageRequestData.getMessagePayload());
+        message.setTimestamp(new Date());
+
+        Message addedMessage = messageRepository.insert(message);
+
+        MessageTransmission messageTransmission = new MessageTransmission();
+        messageTransmission.setMessageId(addedMessage.getId());
+        messageTransmission.setFrom(sourceUser.get().getId());
+        messageTransmission.setTo(destinationUser.get().getId());
+
+        messageTransmissionRepository.insert(messageTransmission);
 
         return new ResponseEntity<>(responseContent, httpStatus);
     }
