@@ -2,8 +2,9 @@ package com.daitangroup.controllers;
 
 import com.daitangroup.ResponseContent;
 import com.daitangroup.User;
-import com.daitangroup.UserDao;
+import com.daitangroup.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class MessengerBackendControllerLevel0 {
 
     @Autowired
+    @Qualifier("UserDaoMysqlImpl")
     private UserDao userDao;
 
     private static final String C_CREATE_SERVICE = "create";

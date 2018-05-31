@@ -1,5 +1,9 @@
-package com.daitangroup;
+package com.daitangroup.dao.impl;
 
+import com.daitangroup.User;
+import com.daitangroup.dao.UserDao;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
@@ -7,8 +11,10 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.List;
 
+@Component
+@Qualifier("UserDaoMysqlImpl")
 @Repository
-public class UserDao {
+public class UserDaoMysqlImpl implements UserDao {
 
     @PersistenceContext
     private EntityManager entityManager;
