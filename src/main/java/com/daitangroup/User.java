@@ -1,24 +1,24 @@
 package com.daitangroup;
 
-import javax.persistence.*;
 
-@Entity
-@Table(name = "User")
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection="user")
 public class User {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Integer id;
+    private String id;
 
     private String name;
 
     private String password;
 
-    public Integer getId() {
+    public String getId() {
         return this.id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -2,13 +2,13 @@ package com.daitangroup.controllers;
 
 import com.daitangroup.ResponseContent;
 import com.daitangroup.User;
-import com.daitangroup.dao.UserDao;
+import com.daitangroup.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -17,8 +17,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class MessengerBackendControllerLevel0 {
 
     @Autowired
-    @Qualifier("UserDaoMysqlImpl")
-    private UserDao userDao;
+    private UserRepository userRepository;
 
     private static final String C_CREATE_SERVICE = "create";
     private static final String C_READ_SERVICE = "read";
@@ -28,7 +27,7 @@ public class MessengerBackendControllerLevel0 {
     @RequestMapping(value="lm_0/messenger/userService", method=POST)
     @ResponseBody
     public ResponseContent doUserService(@RequestParam(name="service", defaultValue="create") String service,
-                                         @RequestParam(name="id", required=false) Integer id,
+                                         @RequestParam(name="id", required=false) String id,
                                          @RequestParam(name="name", required=false, defaultValue="") String name,
                                          @RequestParam(name="password", required=false, defaultValue="") String password) {
 
@@ -44,32 +43,32 @@ public class MessengerBackendControllerLevel0 {
         try {
             switch (service) {
                 case C_CREATE_SERVICE:
-                    userDao.create(user);
+                    User addedUser = userRepository.insert(user);
                     responseContent.setService(C_CREATE_SERVICE);
-                    users.add(user);
+                    users.add(addedUser);
                     responseContent.setUsers(users);
                     break;
                 case C_READ_SERVICE:
                     if (id != null) {
-                        User gotUser = userDao.getById(id);
-                        users.add(gotUser);
+                        Optional<User> gotUser = userRepository.findById(id);
+                        users.add(gotUser.get());
                         responseContent.setUsers(users);
                     } else {
-                        List gotUsers = userDao.getAll();
+                        List gotUsers = userRepository.findAll();
                         responseContent.setUsers(gotUsers);
                     }
                     responseContent.setService(C_READ_SERVICE);
                     break;
                 case C_UPDATE_SERVICE:
                     user.setId(id);
-                    userDao.update(user);
+                    User updatedUser = userRepository.save(user);
                     responseContent.setService(C_UPDATE_SERVICE);
-                    users.add(user);
+                    users.add(updatedUser);
                     responseContent.setUsers(users);
                     break;
                 case C_DELETE_SERVICE:
                     user.setId(id);
-                    userDao.delete(user);
+                    userRepository.delete(user);
                     responseContent.setService(C_DELETE_SERVICE);
                     users.add(user);
                     responseContent.setUsers(users);
