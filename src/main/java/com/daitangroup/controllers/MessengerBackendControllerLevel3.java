@@ -170,30 +170,37 @@ public class MessengerBackendControllerLevel3 {
 
         HttpStatus httpStatus = HttpStatus.OK;
 
-        Optional<User> sourceUser = userRepository.findById(messageRequestData.getSourceId());
-        if (!sourceUser.isPresent()) {
-            httpStatus = HttpStatus.NOT_FOUND;
-            responseContent.setService("Source user not found");
-            return new ResponseEntity<>(responseContent, httpStatus);
+        MessageTransmission messageTransmission = new MessageTransmission();
+
+        if (messageRequestData.getSourceType().equals("user")) {
+            Optional<User> sourceUser = userRepository.findById(messageRequestData.getSourceId());
+            if (!sourceUser.isPresent()) {
+                httpStatus = HttpStatus.NOT_FOUND;
+                responseContent.setService("Source user not found");
+                return new ResponseEntity<>(responseContent, httpStatus);
+            }
+            messageTransmission.setFromId(sourceUser.get().getId());
+            messageTransmission.setFromType("user");
         }
 
-        Optional<User> destinationUser = userRepository.findById(messageRequestData.getDestinationId());
-        if (!destinationUser.isPresent()) {
-            httpStatus = HttpStatus.NOT_FOUND;
-            responseContent.setService("Destination user not found");
-            return new ResponseEntity<>(responseContent, httpStatus);
+        if (messageRequestData.getDestinationType().equals("user")) {
+            Optional<User> destinationUser = userRepository.findById(messageRequestData.getDestinationId());
+            if (!destinationUser.isPresent()) {
+                httpStatus = HttpStatus.NOT_FOUND;
+                responseContent.setService("Destination user not found");
+                return new ResponseEntity<>(responseContent, httpStatus);
+            }
+            messageTransmission.setToId(destinationUser.get().getId());
+            messageTransmission.setToType("user");
         }
 
         Message message = new Message();
         message.setPayload(messageRequestData.getMessagePayload());
-        message.setTimestamp(new Date());
+        message.setCreatedAt(new Date());
 
         Message addedMessage = messageRepository.insert(message);
 
-        MessageTransmission messageTransmission = new MessageTransmission();
         messageTransmission.setMessageId(addedMessage.getId());
-        messageTransmission.setFrom(sourceUser.get().getId());
-        messageTransmission.setTo(destinationUser.get().getId());
 
         messageTransmissionRepository.insert(messageTransmission);
 

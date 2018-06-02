@@ -2,7 +2,9 @@ package com.daitangroup;
 
 public class MessageRequestData {
     private String sourceId;
+    private String sourceType;
     private String destinationId;
+    private String destinationType;
     private String messagePayload;
 
     public void setSourceId(String sourceId) {
@@ -17,6 +19,14 @@ public class MessageRequestData {
         this.messagePayload = messagePayload;
     }
 
+    public void setSourceType(String sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public void setDestinationType(String destinationType) {
+        this.destinationType = destinationType;
+    }
+
     public String getSourceId() {
         return sourceId;
     }
@@ -27,5 +37,13 @@ public class MessageRequestData {
 
     public String getMessagePayload() {
         return messagePayload;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public String getDestinationType() {
+        return destinationType;
     }
 }
