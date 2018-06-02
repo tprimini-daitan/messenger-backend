@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Set;
 
-@Document(collection="group")
+@Document(collection="msg_groups")
 public class Group {
 
     @Id
