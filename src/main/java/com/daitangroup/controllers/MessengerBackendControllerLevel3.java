@@ -2,9 +2,11 @@ package com.daitangroup.controllers;
 
 import com.daitangroup.MessageRequestData;
 import com.daitangroup.ResponseContent;
+import com.daitangroup.entity.Group;
 import com.daitangroup.entity.Message;
 import com.daitangroup.entity.MessageTransmission;
 import com.daitangroup.entity.User;
+import com.daitangroup.repo.GroupRepository;
 import com.daitangroup.repo.MessageRepository;
 import com.daitangroup.repo.MessageTransmissionRepository;
 import com.daitangroup.repo.UserRepository;
@@ -34,6 +36,9 @@ public class MessengerBackendControllerLevel3 {
 
     @Autowired
     private MessageTransmissionRepository messageTransmissionRepository;
+
+    @Autowired
+    private GroupRepository groupRepository;
 
     @RequestMapping(value="lm_3/messenger/user", method=POST, produces="application/json")
     @ResponseBody
@@ -162,6 +167,27 @@ public class MessengerBackendControllerLevel3 {
         return new ResponseEntity<>(responseContent, httpStatus);
     }
 
+    @RequestMapping(value="lm_3/messenger/group", method=POST, produces="application/json")
+    @ResponseBody
+    public ResponseEntity createGroup(@RequestBody Group group) {
+
+        HttpStatus httpStatus = HttpStatus.CREATED;
+
+        ResponseContent responseContent = new ResponseContent();
+
+        try {
+            Group addedGroup = groupRepository.insert(group);
+            responseContent.setService("create");
+        } catch (Exception e) {
+            responseContent.setService(e.toString());
+            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        addLinksToContentForUser(responseContent, null);
+
+        return new ResponseEntity<>("{\"status\":\"created\"}", httpStatus);
+    }
+
     @RequestMapping(value="lm_3/messenger/send_message", method=POST, produces="application/json")
     @ResponseBody
     public ResponseEntity sendMessage(@RequestBody MessageRequestData messageRequestData) {
@@ -181,6 +207,16 @@ public class MessengerBackendControllerLevel3 {
             }
             messageTransmission.setFromId(sourceUser.get().getId());
             messageTransmission.setFromType("user");
+        } else if (messageRequestData.getSourceType().equals("group")) {
+            Optional<Group> sourceGroup = groupRepository.findById(messageRequestData.getSourceId());
+            if (!sourceGroup.isPresent()) {
+                httpStatus = HttpStatus.NOT_FOUND;
+                responseContent.setService("Source group not found");
+                return new ResponseEntity<>(responseContent, httpStatus);
+            }
+            messageTransmission.setFromId(sourceGroup.get().getId());
+            messageTransmission.setFromType("group");
+
         }
 
         if (messageRequestData.getDestinationType().equals("user")) {
@@ -192,6 +228,15 @@ public class MessengerBackendControllerLevel3 {
             }
             messageTransmission.setToId(destinationUser.get().getId());
             messageTransmission.setToType("user");
+        } else if (messageRequestData.getDestinationType().equals("group")) {
+            Optional<Group> destinationGroup = groupRepository.findById(messageRequestData.getDestinationId());
+            if (!destinationGroup.isPresent()) {
+                httpStatus = HttpStatus.NOT_FOUND;
+                responseContent.setService("Destination group not found");
+                return new ResponseEntity<>(responseContent, httpStatus);
+            }
+            messageTransmission.setToId(destinationGroup.get().getId());
+            messageTransmission.setToType("group");
         }
 
         Message message = new Message();
