@@ -3,17 +3,25 @@ package com.daitangroup.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.Date;
+
 @Document(collection = "message_transmission")
 public class MessageTransmission {
 
     @Id
     private String id;
 
-    private String from;
+    private String fromId;
 
-    private String to;
+    private String fromType;
+
+    private String toId;
+
+    private String toType;
 
     private String messageId;
+
+    private Date timestamp;
 
     public String getId() {
         return this.id;
@@ -23,20 +31,36 @@ public class MessageTransmission {
         this.id = id;
     }
 
-    public String getFrom() {
-        return this.from;
+    public String getFromId() {
+        return this.fromId;
     }
 
-    public void setFrom(String from) {
-        this.from = from;
+    public void setFromId(String fromId) {
+        this.fromId = fromId;
     }
 
-    public String getTo() {
-        return this.to;
+    public String getToId() {
+        return this.toId;
     }
 
-    public void setTo(String to) {
-        this.to = to;
+    public void setToId(String toId) {
+        this.toId = toId;
+    }
+
+    public void setFromType(String fromType) {
+        this.fromType = fromType;
+    }
+
+    public void setToType(String toType) {
+        this.toType = toType;
+    }
+
+    public String getFromType() {
+        return fromType;
+    }
+
+    public String getToType() {
+        return toType;
     }
 
     public String getMessageId() {
@@ -45,5 +69,13 @@ public class MessageTransmission {
 
     public void setMessageId(String messageId) {
         this.messageId = messageId;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
     }
 }

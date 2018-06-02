@@ -11,7 +11,7 @@ public class Message {
     @Id
     private String id;
 
-    private Date timestamp;
+    private Date createdAt;
 
     private String payload;
 
@@ -23,12 +23,12 @@ public class Message {
         this.id = id;
     }
 
-    public Date getTimestamp() {
-        return this.timestamp;
+    public Date getCreatedAt() {
+        return this.createdAt;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getPayload() {
