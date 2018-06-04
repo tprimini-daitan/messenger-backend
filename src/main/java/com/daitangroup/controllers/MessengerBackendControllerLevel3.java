@@ -73,7 +73,8 @@ public class MessengerBackendControllerLevel3 {
 
     @RequestMapping(value="lm_3/messenger/user", method=GET, produces="application/json")
     @ResponseBody
-    public ResponseEntity readUser(@RequestParam(name="id", required=false) String id) {
+    public ResponseEntity readUser(@RequestParam(name="id", required=false) String id,
+                                   @RequestParam(name="name", required=false) String name) {
 
         HttpStatus httpStatus = HttpStatus.OK;
 
@@ -90,6 +91,9 @@ public class MessengerBackendControllerLevel3 {
                     users.add(gotUser.get());
                 }
                 responseContent.setUsers(users);
+            } else if (name != null) {
+                List gotUsers = userRepository.findByName(name);
+                responseContent.setUsers(gotUsers);
             } else {
                 List gotUsers = userRepository.findAll();
                 responseContent.setUsers(gotUsers);
@@ -267,7 +271,7 @@ public class MessengerBackendControllerLevel3 {
         }
 
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).createUser(name, password)).withSelfRel().withType("POST"));
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUser(id)).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUser(id, name)).withSelfRel().withType("GET"));
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).updateUser(id, name, password)).withSelfRel().withType("PUT"));
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).deleteUser(id)).withSelfRel().withType("DELETE"));
     }
