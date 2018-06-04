@@ -22,7 +22,6 @@ public class UserDaoMysqlImpl implements UserDao {
     @Transactional
     public void create(User user) {
         entityManager.persist(user);
-        entityManager.flush();
     }
 
     public User getByName(String name) {
