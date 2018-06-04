@@ -10,6 +10,7 @@ import com.daitangroup.repo.GroupRepository;
 import com.daitangroup.repo.MessageRepository;
 import com.daitangroup.repo.MessageTransmissionRepository;
 import com.daitangroup.repo.UserRepository;
+import com.daitangroup.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
@@ -40,6 +38,9 @@ public class MessengerBackendControllerLevel3 {
     @Autowired
     private GroupRepository groupRepository;
 
+    @Autowired
+    private UserService userService;
+
     @RequestMapping(value="lm_3/messenger/user", method=POST, produces="application/json")
     @ResponseBody
     public ResponseEntity createUser(@RequestParam(name="name", required=false, defaultValue="") String name,
@@ -47,23 +48,14 @@ public class MessengerBackendControllerLevel3 {
 
         HttpStatus httpStatus = HttpStatus.CREATED;
 
-        List<User> users = new ArrayList<User>();
-
-        User user = new User();
-
-        user.setName(name);
-        user.setPassword(password);
+        User user = userService.insert(name, password);
 
         ResponseContent responseContent = new ResponseContent();
 
-        try {
-            User addedUser = userRepository.insert(user);
-            responseContent.setService("create");
-            users.add(addedUser);
-            responseContent.setUsers(users);
-        } catch (Exception e) {
-            responseContent.setService(e.toString());
+        if (user == null) {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        } else {
+            responseContent.setUsers(Arrays.asList(user));
         }
 
         addLinksToContentForUser(responseContent, user);
@@ -73,7 +65,8 @@ public class MessengerBackendControllerLevel3 {
 
     @RequestMapping(value="lm_3/messenger/user", method=GET, produces="application/json")
     @ResponseBody
-    public ResponseEntity readUser(@RequestParam(name="id", required=false) String id) {
+    public ResponseEntity readUser(@RequestParam(name="id", required=false) String id,
+                                   @RequestParam(name="name", required=false) String name) {
 
         HttpStatus httpStatus = HttpStatus.OK;
 
@@ -90,6 +83,9 @@ public class MessengerBackendControllerLevel3 {
                     users.add(gotUser.get());
                 }
                 responseContent.setUsers(users);
+            } else if (name != null) {
+                List gotUsers = userRepository.findByName(name);
+                responseContent.setUsers(gotUsers);
             } else {
                 List gotUsers = userRepository.findAll();
                 responseContent.setUsers(gotUsers);
@@ -267,7 +263,7 @@ public class MessengerBackendControllerLevel3 {
         }
 
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).createUser(name, password)).withSelfRel().withType("POST"));
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUser(id)).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUser(id, name)).withSelfRel().withType("GET"));
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).updateUser(id, name, password)).withSelfRel().withType("PUT"));
         responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).deleteUser(id)).withSelfRel().withType("DELETE"));
     }
