@@ -1,6 +1,6 @@
 package com.daitangroup.controllers;
 
-import com.daitangroup.ResponseContent;
+import com.daitangroup.controllers.types.ResponseContent;
 import com.daitangroup.entity.User;
 import com.daitangroup.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class MessengerBackendControllerLevel0 {
 
         List<User> users = new ArrayList<User>();
 
-        User user = new User();
+        User user = new User(id, name, password);
 
         user.setName(name);
         user.setPassword(password);

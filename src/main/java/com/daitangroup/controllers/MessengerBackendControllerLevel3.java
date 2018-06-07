@@ -1,18 +1,13 @@
 package com.daitangroup.controllers;
 
-import com.daitangroup.MessageRequestData;
-import com.daitangroup.ResponseContent;
+import com.daitangroup.service.types.MessageRequestData;
+import com.daitangroup.controllers.types.ResponseContent;
 import com.daitangroup.entity.Group;
-import com.daitangroup.entity.Message;
-import com.daitangroup.entity.MessageTransmission;
 import com.daitangroup.entity.User;
-import com.daitangroup.repo.GroupRepository;
-import com.daitangroup.repo.MessageRepository;
-import com.daitangroup.repo.MessageTransmissionRepository;
-import com.daitangroup.repo.UserRepository;
+import com.daitangroup.service.CommunicationService;
+import com.daitangroup.service.GroupService;
 import com.daitangroup.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.daitangroup.service.types.CommunicationServiceStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,251 +15,202 @@ import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
 import java.util.*;
 
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 
 @RestController
+@RequestMapping(value="/lm_3/messenger")
 public class MessengerBackendControllerLevel3 {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserService userService;
+    private final GroupService groupService;
+    private final CommunicationService communicationService;
 
-    @Autowired
-    private MessageRepository messageRepository;
+    public MessengerBackendControllerLevel3(UserService userService,
+                                            GroupService groupService,
+                                            CommunicationService communicationService) {
+        this.userService = userService;
+        this.groupService = groupService;
+        this.communicationService = communicationService;
+    }
 
-    @Autowired
-    private MessageTransmissionRepository messageTransmissionRepository;
+    @RequestMapping(value="/user", method=POST, produces="application/json")
+    public ResponseEntity createUser(@RequestParam(name="name") String name,
+                                     @RequestParam(name="password") String password) {
 
-    @Autowired
-    private GroupRepository groupRepository;
+        User userToBeAdded = new User(null, name, password);
 
-    @Autowired
-    private UserService userService;
+        User addedUser = userService.insert(userToBeAdded);
 
-    @RequestMapping(value="lm_3/messenger/user", method=POST, produces="application/json")
-    @ResponseBody
-    public ResponseEntity createUser(@RequestParam(name="name", required=false, defaultValue="") String name,
-                                     @RequestParam(name="password", required=false, defaultValue="") String password) {
+        if (addedUser == null) {
+            return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, addedUser, null);
+            responseContent.setUsers(Arrays.asList(addedUser));
+            return new ResponseEntity<>(responseContent, CREATED);
+        }
+    }
 
-        HttpStatus httpStatus = HttpStatus.CREATED;
+    @RequestMapping(value="/user/{id}/id", method=GET, produces="application/json")
+    public ResponseEntity readUserById(@PathVariable String id) {
 
-        User user = userService.insert(name, password);
-
-        ResponseContent responseContent = new ResponseContent();
+        User user = userService.findById(id);
 
         if (user == null) {
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            return new ResponseEntity<>(null, NOT_FOUND);
         } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, user, null);
             responseContent.setUsers(Arrays.asList(user));
+            return new ResponseEntity<>(responseContent, OK);
         }
-
-        addLinksToContentForUser(responseContent, user);
-
-        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    @RequestMapping(value="lm_3/messenger/user", method=GET, produces="application/json")
-    @ResponseBody
-    public ResponseEntity readUser(@RequestParam(name="id", required=false) String id,
-                                   @RequestParam(name="name", required=false) String name) {
+    @RequestMapping(value="/user/{name}/name", method=GET, produces="application/json")
+    public ResponseEntity readUserByName(@PathVariable String name) {
 
-        HttpStatus httpStatus = HttpStatus.OK;
+        List<User> users = userService.findByName(name);
 
-        List<User> users = new ArrayList<User>();
-
-        ResponseContent responseContent = new ResponseContent();
-
-        try {
-            if (id != null) {
-                Optional<User> gotUser = userRepository.findById(id);
-                if (!gotUser.isPresent()) {
-                    httpStatus = HttpStatus.NOT_FOUND;
-                } else {
-                    users.add(gotUser.get());
-                }
-                responseContent.setUsers(users);
-            } else if (name != null) {
-                List gotUsers = userRepository.findByName(name);
-                responseContent.setUsers(gotUsers);
-            } else {
-                List gotUsers = userRepository.findAll();
-                responseContent.setUsers(gotUsers);
-            }
-            responseContent.setService("read");
-        } catch (Exception e) {
-            responseContent.setService(e.toString());
-            httpStatus = HttpStatus.NOT_FOUND;
-        }
-
-        addLinksToContentForUser(responseContent, null);
-
-        return new ResponseEntity<>(responseContent, httpStatus);
-    }
-
-
-    @RequestMapping(value="lm_3/messenger/user", method=PUT, produces="application/json")
-    @ResponseBody
-    public ResponseEntity updateUser(@RequestParam(name="id") String id,
-                                      @RequestParam(name="name", required=false, defaultValue="") String name,
-                                      @RequestParam(name="password", required=false, defaultValue="") String password) {
-
-        HttpStatus httpStatus = HttpStatus.OK;
-
-        List<User> users = new ArrayList<User>();
-
-        User user = new User();
-
-        user.setName(name);
-        user.setPassword(password);
-
-        ResponseContent responseContent = new ResponseContent();
-
-        try {
-            user.setId(id);
-            User updatedUser = userRepository.save(user);
-            responseContent.setService("update");
-            users.add(updatedUser);
+        if (users == null) {
+            return new ResponseEntity<>(null, NOT_FOUND);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, null, null);
             responseContent.setUsers(users);
-        } catch (Exception e) {
-            responseContent.setService(e.toString());
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            return new ResponseEntity<>(responseContent, OK);
         }
-
-        addLinksToContentForUser(responseContent, user);
-
-        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    @RequestMapping(value="lm_3/messenger/user", method=DELETE, produces="application/json")
-    @ResponseBody
+    @RequestMapping(value="/user", method=GET, produces="application/json")
+    public ResponseEntity readAllUsers() {
+
+        List<User> users = userService.findAll();
+
+        if (users == null) {
+            return new ResponseEntity<>(null, NOT_FOUND);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, null, null);
+            responseContent.setUsers(users);
+            return new ResponseEntity<>(responseContent, OK);
+        }
+    }
+
+    @RequestMapping(value="/user", method=PUT, produces="application/json")
+    public ResponseEntity updateUser(@RequestParam(name="id") String id,
+                                     @RequestParam(name="name") String name,
+                                     @RequestParam(name="password") String password) {
+
+        User userToBeUpdated = new User(id, name, password);
+
+        User updatedUser = userService.update(userToBeUpdated);
+
+        if (updatedUser == null) {
+            return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, updatedUser, null);
+            responseContent.setUsers(Arrays.asList(updatedUser));
+            return new ResponseEntity<>(responseContent, OK);
+        }
+    }
+
+    @RequestMapping(value="/user", method=DELETE, produces="application/json")
     public ResponseEntity deleteUser(@RequestParam(name="id") String id) {
 
-        HttpStatus httpStatus = HttpStatus.OK;
 
-        List<User> users = new ArrayList<User>();
-
-        User user = new User();
-
-        ResponseContent responseContent = new ResponseContent();
-
-        try {
-            user.setId(id);
-            userRepository.delete(user);
-            responseContent.setService("delete");
-            users.add(user);
-            responseContent.setUsers(users);
-        } catch (Exception e) {
-            responseContent.setService(e.toString());
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (!userService.delete(id)) {
+            return new ResponseEntity<>(null, NOT_FOUND);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, null, null);
+            return new ResponseEntity<>(responseContent, OK);
         }
-
-        addLinksToContentForUser(responseContent, user);
-
-        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    @RequestMapping(value="lm_3/messenger/group", method=POST, produces="application/json")
-    @ResponseBody
+    @RequestMapping(value="/group", method=POST, produces="application/json")
     public ResponseEntity createGroup(@RequestBody Group group) {
 
-        HttpStatus httpStatus = HttpStatus.CREATED;
-
-        ResponseContent responseContent = new ResponseContent();
-
-        try {
-            Group addedGroup = groupRepository.insert(group);
-            responseContent.setService("create");
-        } catch (Exception e) {
-            responseContent.setService(e.toString());
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        if (group == null) {
+            return new ResponseEntity<>(null, BAD_REQUEST);
         }
 
-        addLinksToContentForUser(responseContent, null);
+        Group addedGroup = groupService.insert(group);
 
-        return new ResponseEntity<>("{\"status\":\"created\"}", httpStatus);
+        if (addedGroup == null) {
+            return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            responseContent.setGroups(Arrays.asList(addedGroup));
+            addLinksToContentForUser(responseContent, null, group);
+            return new ResponseEntity<>(responseContent, CREATED);
+        }
     }
 
-    @RequestMapping(value="lm_3/messenger/send_message", method=POST, produces="application/json")
-    @ResponseBody
+    @RequestMapping(value="/group", method=GET, produces="application/json")
+    public ResponseEntity readAllGroups() {
+
+        List<Group> groups = groupService.findAll();
+
+        if (groups == null) {
+            return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
+        } else {
+            ResponseContent responseContent = new ResponseContent();
+            addLinksToContentForUser(responseContent, null, null);
+            responseContent.setGroups(groups);
+            return new ResponseEntity<>(responseContent, CREATED);
+        }
+    }
+
+    @RequestMapping(value="/send_message", method=POST, produces="application/json")
     public ResponseEntity sendMessage(@RequestBody MessageRequestData messageRequestData) {
 
-        ResponseContent responseContent = new ResponseContent();
-
-        HttpStatus httpStatus = HttpStatus.OK;
-
-        MessageTransmission messageTransmission = new MessageTransmission();
-
-        if (messageRequestData.getSourceType().equals("user")) {
-            Optional<User> sourceUser = userRepository.findById(messageRequestData.getSourceId());
-            if (!sourceUser.isPresent()) {
-                httpStatus = HttpStatus.NOT_FOUND;
-                responseContent.setService("Source user not found");
-                return new ResponseEntity<>(responseContent, httpStatus);
-            }
-            messageTransmission.setFromId(sourceUser.get().getId());
-            messageTransmission.setFromType("user");
-        } else if (messageRequestData.getSourceType().equals("group")) {
-            Optional<Group> sourceGroup = groupRepository.findById(messageRequestData.getSourceId());
-            if (!sourceGroup.isPresent()) {
-                httpStatus = HttpStatus.NOT_FOUND;
-                responseContent.setService("Source group not found");
-                return new ResponseEntity<>(responseContent, httpStatus);
-            }
-            messageTransmission.setFromId(sourceGroup.get().getId());
-            messageTransmission.setFromType("group");
-
+        if (messageRequestData == null) {
+            return new ResponseEntity<>(null, BAD_REQUEST);
         }
 
-        if (messageRequestData.getDestinationType().equals("user")) {
-            Optional<User> destinationUser = userRepository.findById(messageRequestData.getDestinationId());
-            if (!destinationUser.isPresent()) {
-                httpStatus = HttpStatus.NOT_FOUND;
-                responseContent.setService("Destination user not found");
-                return new ResponseEntity<>(responseContent, httpStatus);
-            }
-            messageTransmission.setToId(destinationUser.get().getId());
-            messageTransmission.setToType("user");
-        } else if (messageRequestData.getDestinationType().equals("group")) {
-            Optional<Group> destinationGroup = groupRepository.findById(messageRequestData.getDestinationId());
-            if (!destinationGroup.isPresent()) {
-                httpStatus = HttpStatus.NOT_FOUND;
-                responseContent.setService("Destination group not found");
-                return new ResponseEntity<>(responseContent, httpStatus);
-            }
-            messageTransmission.setToId(destinationGroup.get().getId());
-            messageTransmission.setToType("group");
+        CommunicationServiceStatus communicationServiceStatus = communicationService.sendMessage(messageRequestData);
+
+        switch (communicationServiceStatus) {
+            case DST_GROUP_NOT_FOUND:
+            case DST_USER_NOT_FOUND:
+            case SRC_GROUP_NOT_FOUND:
+            case SRC_USER_NOT_FOUND:
+                return new ResponseEntity<>(null, NOT_FOUND);
+            case ERROR_CREATING_MSG:
+            case ERROR_SENDING_MSG:
+                return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
+            case OK:
+                return new ResponseEntity<>(null, OK);
+            default:
+                return new ResponseEntity<>(null, INTERNAL_SERVER_ERROR);
         }
-
-        Message message = new Message();
-        message.setPayload(messageRequestData.getMessagePayload());
-        message.setCreatedAt(new Date());
-
-        Message addedMessage = messageRepository.insert(message);
-
-        messageTransmission.setMessageId(addedMessage.getId());
-
-        messageTransmissionRepository.insert(messageTransmission);
-
-        return new ResponseEntity<>(responseContent, httpStatus);
     }
 
-    private void addLinksToContentForUser(ResponseContent responseContent, User user) {
-        String id = null;
-        String name;
+    private void addLinksToContentForUser(ResponseContent responseContent, User user, Group group) {
+        String userId = null;
+        String userName;
         String password;
 
         if (user != null) {
-            id = user.getId();
-            name = user.getName();
+            userId = user.getId();
+            userName = user.getName();
             password = user.getPassword();
         } else {
-            name = "username";
+            userName = "username";
             password = "password";
         }
 
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).createUser(name, password)).withSelfRel().withType("POST"));
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUser(id, name)).withSelfRel().withType("GET"));
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).updateUser(id, name, password)).withSelfRel().withType("PUT"));
-        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).deleteUser(id)).withSelfRel().withType("DELETE"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).createUser(userName, password)).withSelfRel().withType("POST"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUserById(userId)).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readUserByName(userName)).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readAllUsers()).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).updateUser(userId, userName, password)).withSelfRel().withType("PUT"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).deleteUser(userId)).withSelfRel().withType("DELETE"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).createGroup(group)).withSelfRel().withType("POST"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).readAllGroups()).withSelfRel().withType("GET"));
+        responseContent.add(linkTo(methodOn(MessengerBackendControllerLevel3.class).sendMessage(null)).withSelfRel().withType("POST"));
     }
 }
