@@ -73,7 +73,7 @@ public class MessengerBackendControllerLevel3 {
 
         List<User> users = userService.findByName(name);
 
-        if (users == null) {
+        if (users == null || users.size() == 0) {
             return new ResponseEntity<>(null, NOT_FOUND);
         } else {
             ResponseContent responseContent = new ResponseContent();
