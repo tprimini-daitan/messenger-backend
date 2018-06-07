@@ -1,4 +1,4 @@
-package com.daitangroup;
+package com.daitangroup.service.types;
 
 public class MessageRequestData {
     private String sourceId;
