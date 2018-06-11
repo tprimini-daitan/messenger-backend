@@ -1,11 +1,12 @@
 # messenger-backend
 ## Onboarding training: Basic spring boot testings
-###### It contains the implementation of Restful services following Richardson Maturity Level description
-###### The persistent layer was built initially using MySQL and evolved to MongoDB
-###### In Maturity level 3 there is a service layer interfacing with dao impl
-###### There are some unit tests using Spring Tests and mockito
-###### There are also some integration tests using BDD (Jbehave)
- 
+<br/>
+It contains the implementation of Restful services following Richardson Maturity Level description
+The persistent layer was built initially using MySQL and evolved to MongoDB
+In Maturity level 3 there is a service layer interfacing with dao impl
+There are some unit tests using Spring Tests and mockito
+There are also some integration tests using BDD (Jbehave)
+ <br/>
 
 1. Install docker and docker-compose modules:
    * https://docs.docker.com/install/
