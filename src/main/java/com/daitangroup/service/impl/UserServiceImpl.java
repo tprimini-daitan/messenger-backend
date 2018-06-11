@@ -3,6 +3,7 @@ package com.daitangroup.service.impl;
 import com.daitangroup.entity.User;
 import com.daitangroup.repo.UserRepository;
 import com.daitangroup.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
