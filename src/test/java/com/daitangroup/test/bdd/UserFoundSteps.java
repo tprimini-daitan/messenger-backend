@@ -4,7 +4,6 @@ import com.daitangroup.controllers.MessengerBackendControllerLevel3;
 import org.jbehave.core.annotations.Given;
 import org.jbehave.core.annotations.Then;
 import org.jbehave.core.annotations.When;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -14,8 +13,11 @@ import static org.springframework.http.HttpStatus.OK;
 @Component
 public class UserFoundSteps {
 
-    @Autowired
     private MessengerBackendControllerLevel3 msgCtrl3;
+
+    public UserFoundSteps(MessengerBackendControllerLevel3 msgCtrl3) {
+        this.msgCtrl3 = msgCtrl3;
+    }
 
     private String userId;
     private ResponseEntity responseEntity;
